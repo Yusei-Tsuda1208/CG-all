@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/three@0.137.4/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.137.4/examples/js/controls/OrbitControls.js"></script>
+    <title>観覧車</title>
+</head>
+<body>
+    <h1>最終課題　遊園地</h1>
+    <p>
+        実現しようとしたこと<br><br>
+        最初の方の課題で、観覧車のようなものを作成したため、それをよりリアルに近づけたものの作成を目指した。<br>
+        コーヒーカップも隣に配置することで、遊園地の要素を出したかった。<br>
+        同じような動きをしているものはグループ化をしている。<br>
+        コーヒーカップは4つのグループと、全体のグループをそれぞれ回転させることで、コーヒーカップの複雑な回転を再現した。<br>
+        観覧車の時計や地面、背景にテクスチャを貼り、単色よりは現実感を少しでも高めることができた。<br>
+
+        マウスによる視点移動や、サイズ変更はもちろん出来るようにしてある。
+    </p>
+    <script>
+        // ページの読み込みを待つ
+        window.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+        // サイズを指定
+        const width = 1000
+        const height = 800;
+
+        // レンダラーを作成
+        var renderer = new THREE.WebGLRenderer();
+        document.body.appendChild(renderer.domElement);
+        renderer.setSize(width, height);
+
+        renderer.shadowMap.enabled = true;
+        
+        // 背景
+        //renderer.setClearColor(0x99CCFF);
+        
+
+        // シーンを作成
+        const scene = new THREE.Scene();
+
+        // カメラを作成
+        const camera = new THREE.PerspectiveCamera(45, width / height);
+        // カメラの初期座標を設定
+        camera.position.set(150, 30, -120);
+
+        // カメラコントローラーを作成
+        const controls = new THREE.OrbitControls(camera, document.body); 
+        
+        // 平行光源1
+        var directionalLight1 = new THREE.DirectionalLight(0xffffff);
+        directionalLight1.position.set(100, 100, -100);
+        directionalLight1.castShadow = true;
+        directionalLight1.shadow.mapSize.set(4096, 4096);
+        // シーンに追加
+        scene.add(directionalLight1);
+        
+        //平行光源2
+        var directionalLight2 = new THREE.DirectionalLight(0x888888);
+        directionalLight2.position.set(-5, 5, -10);
+        // シーンに追加
+        scene.add(directionalLight2);
+
+        //平行光源3
+        var directionalLight3 = new THREE.DirectionalLight(0x888888);
+        directionalLight3.position.set(5, -5, 10);
+        // シーンに追加
+        scene.add(directionalLight3);
+        /*helper
+        const gridHelper = new THREE.GridHelper(10,20); // size, step
+        scene.add(gridHelper);
+        const axisHelper = new THREE.AxisHelper(5); //軸の長さ　X：赤、Y：緑、z：青
+        scene.add(axisHelper);
+
+        var light = new THREE.SpotLight(0xffffff, 1, 100, Math.PI / 20, 0.2);
+        light.position.set(10,90, -100);
+        light.target.position.set( 0, 50, -100 );
+        // ライトに影を有効にする
+        light.castShadow = true;
+        //light.shadow.mapSize.width = 2048;
+        //light.shadow.mapSize.height = 2048;
+        //scene.add(light);
+
+        /* 箱を作成
+        var geometry = new THREE.BoxGeometry(1, 1, 1);
+        var material = new THREE.MeshPhongMaterial({ color: 0x696969 });
+        var box = new THREE.Mesh(geometry, material);
+        box.position.set(0,0,0); //位置を指定
+        scene.add(box);   // シーンに追加*/
+
+        //地面
+        var planeGeometry = new THREE.PlaneGeometry(300,300,10,10); //縦、横、分割数、分割数
+        var planeMaterial = new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("grass.jpg")})
+        var plane = new THREE.Mesh(planeGeometry,planeMaterial);
+        plane.receiveShadow = true; //影がつく
+        plane.rotation.set( -Math.PI/2, 0, 0 );
+        plane.position.set(0,0,0);
+        scene.add(plane);
+
+
+        /*土台
+        var geometry = new THREE.BoxGeometry(0.2, 2.5, 0.2);
+        var material = new THREE.MeshStandardMaterial({ color: 0x696969 });
+        var box = new THREE.Mesh(geometry, material);
+        box.castShadow = true; //影ができる
+        box.position.set(0,1,-0.25); //位置を指定
+        scene.add(box);   // シーンに追加
+
+        var box2 = new THREE.Mesh(geometry, material);
+        box2.castShadow = true; 
+        box2.position.set(0,1,0.25);
+        scene.add(box2);  
+
+        var box4 = new THREE.Mesh(geometry, material);
+        box4.castShadow = true; 
+        box4.position.set(1.9,1,-0.25);
+        scene.add(box4);  
+
+        var box5 = new THREE.Mesh(geometry, material);
+        box5.castShadow = true; 
+        box5.position.set(1.9,1,0.25); 
+        scene.add(box5);   
+
+        var geometry3 = new THREE.BoxGeometry(0.2, 2, 0.2);
+        var material3 = new THREE.MeshStandardMaterial({ color: 0x223B6C });
+        var box3 = new THREE.Mesh(geometry3, material3);
+        box3.castShadow = true; 
+        box3.position.set(0.95,2,0); //位置を指定
+        scene.add(box3);   // シーンに追加*/
+
+        //土台
+        var groundGeometry = new THREE.BoxGeometry(2, 33, 2);
+        var groundMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff});
+        var ground1 = new THREE.Mesh(groundGeometry,groundMaterial);
+        ground1.position.set(-5,15,-5); //位置を指定
+        ground1.castShadow = true;
+        ground1.receiveShadow = true;
+        scene.add(ground1);   // シーンに追加
+
+        var ground2 = new THREE.Mesh(groundGeometry,groundMaterial);
+        ground2.position.set(-5,15,5); //位置を指定
+        ground2.castShadow = true;
+        ground2.receiveShadow = true;
+        scene.add(ground2);   // シーンに追加
+
+        var ground3 = new THREE.Mesh(groundGeometry,groundMaterial);
+        ground3.position.set(5,15,5); //位置を指定
+        ground3.castShadow = true;
+        ground3.receiveShadow = true;
+        scene.add(ground3);   // シーンに追加
+
+        var ground4 = new THREE.Mesh(groundGeometry,groundMaterial);
+        ground4.position.set(5,15,-5); //位置を指定
+        ground4.castShadow = true;
+        ground4.receiveShadow = true;
+        scene.add(ground4);   // シーンに追加
+
+        //軸
+        const centerGeometry = new THREE.CylinderGeometry( 1.7, 1.7, 15, 16 );
+        const centerMaterial = new THREE.MeshStandardMaterial( {color: 0xFFFFFF} );
+        const center = new THREE.Mesh( centerGeometry, centerMaterial);
+        center.castShadow = true;
+        center.position.set(0,30,0);
+        scene.add( center );
+
+        
+        /*柱
+        var polegeometry = new THREE.BoxGeometry(0.2, 2.5, 0.2);
+        var polematerial = new THREE.MeshStandardMaterial({ color: 0xffffFf });
+        var pole1 = new THREE.Mesh(polegeometry, polematerial);
+        pole1.castShadow = true; 
+        pole1.position.set(0.9,15,0); //位置を指定
+        scene.add(pole1);   // シーンに追加
+
+        var pole2 = new THREE.Mesh(polegeometry, polematerial);
+        pole2.castShadow = true; 
+        pole2.position.set(0.9,2,0); //位置を指定
+        scene.add(pole2);
+
+        var pole3 = new THREE.Mesh(polegeometry, polematerial);
+        pole3.castShadow = true; 
+        pole3.position.set(0.9,2,0); //位置を指定
+        scene.add(pole3)*/
+
+        //支柱
+        const poleGeometry = new THREE.CylinderGeometry( 0.4, 0.4, 55, 16 );
+        const poleMaterial = new THREE.MeshStandardMaterial( {color: 0xFFFFFF} );
+        const pole1 = new THREE.Mesh( poleGeometry, poleMaterial);
+        pole1.castShadow = true;
+        pole1.receiveShadow = true;
+        pole1.position.set(-1,0,0);
+        //scene.add( pole1 );
+
+        const pole2 = new THREE.Mesh( poleGeometry, poleMaterial);
+        pole2.castShadow = true;
+        pole2.receiveShadow = true;
+        pole2.position.set(1,0,0);
+        //scene.add( pole2 );
+
+        const pole3 = new THREE.Mesh( poleGeometry, poleMaterial);
+        pole3.castShadow = true;
+        pole3.receiveShadow = true;
+        pole3.position.set(-1,0,0);
+        //scene.add( pole3 );
+
+        const pole4 = new THREE.Mesh( poleGeometry, poleMaterial);
+        pole4.castShadow = true;
+        pole4.receiveShadow = true;
+        pole4.position.set(1,0,0);
+
+        const pole5 = new THREE.Mesh( poleGeometry, poleMaterial);
+        pole5.castShadow = true;
+        pole5.receiveShadow = true;
+        pole5.position.set(-1,0,0);
+
+        const pole6 = new THREE.Mesh( poleGeometry, poleMaterial);
+        pole6.castShadow = true;
+        pole6.receiveShadow = true;
+        pole6.position.set(1,0,0);
+
+        const pole7 = new THREE.Mesh( poleGeometry, poleMaterial);
+        pole7.castShadow = true;
+        pole7.receiveShadow = true;
+        pole7.position.set(-1,0,0);
+
+        const pole8 = new THREE.Mesh( poleGeometry, poleMaterial);
+        pole8.castShadow = true;
+        pole8.receiveShadow = true;
+        pole8.position.set(1,0,0);
+
+        const pole9 = new THREE.Mesh( poleGeometry, poleMaterial);
+        pole9.castShadow = true;
+        pole9.receiveShadow = true;
+        pole9.position.set(-1,0,0);
+
+        const pole10 = new THREE.Mesh( poleGeometry, poleMaterial);
+        pole10.castShadow = true;
+        pole10.receiveShadow = true;
+        pole10.position.set(1,0,0);
+
+        const pole11 = new THREE.Mesh( poleGeometry, poleMaterial);
+        pole11.castShadow = true;
+        pole11.receiveShadow = true;
+        pole11.position.set(-1,0,0);
+
+        const pole12 = new THREE.Mesh( poleGeometry, poleMaterial);
+        pole12.castShadow = true;
+        pole12.receiveShadow = true;
+        pole12.position.set(1,0,0);
+
+
+
+
+        //柱横
+
+        const dgeometry = new THREE.TorusGeometry(8, 0.5, 6, 12);
+        const dmaterial = new THREE.MeshStandardMaterial({color: 0xFFFFFF});
+        const s_pole1 = new THREE.Mesh(dgeometry, dmaterial);
+        s_pole1.castShadow = true;
+        s_pole1.receiveShadow = true;
+        s_pole1.position.set(-1.5,0,0);
+
+        const s_pole2 = new THREE.Mesh(dgeometry, dmaterial);
+        s_pole2.castShadow = true;
+        s_pole2.receiveShadow = true;
+        s_pole2.position.set(1.5,0,0);
+
+        const dgeometry2 = new THREE.TorusGeometry(15, 0.5, 6, 12);
+        const s_pole3 = new THREE.Mesh(dgeometry2, dmaterial);
+        s_pole3.castShadow = true;
+        s_pole3.receiveShadow = true;
+        s_pole3.position.set(-1.5,0,0);
+
+        const s_pole4 = new THREE.Mesh(dgeometry2, dmaterial);
+        s_pole4.castShadow = true;
+        s_pole4.receiveShadow = true;
+        s_pole4.position.set(1.5,0,0);
+
+        const dgeometry3 = new THREE.TorusGeometry(24, 0.5, 6, 12);
+        const s_pole5 = new THREE.Mesh(dgeometry3, dmaterial);
+        s_pole5.castShadow = true;
+        s_pole5.receiveShadow = true;
+        s_pole5.position.set(-1.5,0,0);
+
+        const s_pole6 = new THREE.Mesh(dgeometry3, dmaterial);
+        s_pole6.castShadow = true;
+        s_pole6.receiveShadow = true;
+        s_pole6.position.set(1.5,0,0);
+
+
+        //room1
+        const Geometry = new THREE.CylinderGeometry( 3, 3, 3, 16 );
+        const r1Material = new THREE.MeshStandardMaterial( {color: 0xFF6666} );
+        const room1 = new THREE.Mesh( Geometry, r1Material);
+        room1.castShadow = true;
+        room1.receiveShadow = true;
+        room1.position.set(0,-25,0);
+        //scene.add( room1 );
+
+        //room2
+        const r2Material = new THREE.MeshStandardMaterial( {color: 0x66FFFF});
+        const room2 = new THREE.Mesh( Geometry, r2Material);
+        room2.castShadow = true;
+        room2.receiveShadow = true;
+        room2.position.set(0,25,0);
+
+        //room3
+        const r3Material = new THREE.MeshStandardMaterial( {color: 0xB2FF66} );
+        const room3 = new THREE.Mesh( Geometry, r3Material);
+        room3.position.set(0,0,25);
+        room3.castShadow = true;
+        room3.receiveShadow = true;
+        //scene.add( room3 );
+
+        //room4
+        const r4Material = new THREE.MeshStandardMaterial( {color: 0xB266FF} );
+        const room4 = new THREE.Mesh( Geometry, r4Material);
+        room4.position.set(0,0,-25);
+        room4.castShadow = true;
+        room4.receiveShadow = true;
+
+        //room5
+        const r5Material = new THREE.MeshStandardMaterial( {color: 0x66FFB2} );
+        const room5 = new THREE.Mesh( Geometry, r5Material);
+        room5.position.set(0,21.65,12.5);
+        room5.castShadow = true;
+        room5.receiveShadow = true;
+        //scene.add( room3 );
+
+        //room6
+        const r6Material = new THREE.MeshStandardMaterial( {color: 0x66FF66} );
+        const room6 = new THREE.Mesh( Geometry, r6Material);
+        room6.position.set(0,12.5,21.65);
+        room6.castShadow = true;
+        room6.receiveShadow = true;
+
+        //room7
+        const r7Material = new THREE.MeshStandardMaterial( {color: 0x66B2FF} );
+        const room7 = new THREE.Mesh( Geometry, r7Material);
+        room7.position.set(0,21.65,-12.5);
+        room7.castShadow = true;
+        room7.receiveShadow = true;
+
+        //room8
+        const r8Material = new THREE.MeshStandardMaterial( {color: 0x6666FF} );
+        const room8 = new THREE.Mesh( Geometry, r8Material);
+        room8.position.set(0,12.5,-21.65);
+        room8.castShadow = true;
+        room8.receiveShadow = true;
+
+        //room9
+        const r9Material = new THREE.MeshStandardMaterial( {color: 0xFFB266} );
+        const room9 = new THREE.Mesh( Geometry, r9Material);
+        room9.position.set(0,-21.65,12.5);
+        room9.castShadow = true;
+        room9.receiveShadow = true;
+
+        //room10
+        const r10Material = new THREE.MeshStandardMaterial( {color: 0xFFFF66} );
+        const room10 = new THREE.Mesh( Geometry, r10Material);
+        room10.position.set(0,-12.5,21.65);
+        room10.castShadow = true;
+        room10.receiveShadow = true;
+
+        //room11
+        const r11Material = new THREE.MeshStandardMaterial( {color: 0xFF66B2} );
+        const room11 = new THREE.Mesh( Geometry, r11Material);
+        room11.position.set(0,-21.65,-12.5);
+        room11.castShadow = true;
+        room11.receiveShadow = true;
+
+        //room12
+        const r12Material = new THREE.MeshStandardMaterial( {color: 0xFF66FF} );
+        const room12 = new THREE.Mesh( Geometry, r12Material);
+        room12.position.set(0,-12.5,-21.65);
+        room12.castShadow = true;
+        room12.receiveShadow = true;
+
+        //軸装飾
+        const cMaterial = new THREE.MeshStandardMaterial( {color: 0xFFFFFF} );
+        const center1 = new THREE.Mesh( Geometry, cMaterial);
+        center1.position.set(0,0,0);
+        center1.castShadow = true;
+        center1.receiveShadow = true;
+        //scene.add( center1 );
+
+        //時計
+        var materials = [
+            new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("time-1.png")}),
+            new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("black.png")}),
+            new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("black.png")}),
+            new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("black.png")}),
+            new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("black.png")}),
+            new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("black.png")}),
+        ]
+
+        var clock_geometry = new THREE.BoxGeometry(1, 4, 10);
+        var clock_material = new THREE.MeshFaceMaterial(materials);
+        var clock1 = new THREE.Mesh(clock_geometry, clock_material);
+        clock1.position.set(8,30,0);
+        clock1.castShadow = true;
+        clock1.receiveShadow = true;
+        scene.add( clock1 );
+
+        var clock2 = new THREE.Mesh(clock_geometry, clock_material);
+        clock2.position.set(-8,30,0);
+        clock2.castShadow = true;
+        clock2.receiveShadow = true;
+        scene.add( clock2 );
+
+
+        // 台
+        const under_Geometry = new THREE.CylinderGeometry( 36, 36, 2, 64 );
+        const under_Material = new THREE.MeshStandardMaterial( {color: 0xD9D9D9} );
+        const under = new THREE.Mesh( under_Geometry, under_Material);
+        under.position.set(60,0,0);
+        under.castShadow = true;
+        scene.add( under );
+
+        const centerp_Geometry = new THREE.CylinderGeometry( 2, 2, 15, 16 );
+        const centerp_Material = new THREE.MeshStandardMaterial( {color: 0xFFFFFF} );
+        const centerp = new THREE.Mesh( centerp_Geometry,centerp_Material);
+        centerp.position.set(60,8,0);
+        centerp.castShadow = true;
+        scene.add(centerp);
+
+        const side_Geometry = new THREE.CylinderGeometry( 0.5, 0.5, 15, 16 );
+        const side_Material = new THREE.MeshStandardMaterial( {color: 0xFFFFFF} );
+        const sidep1 = new THREE.Mesh( side_Geometry,side_Material);
+        sidep1.position.set(95,8,0);
+        sidep1.castShadow = true;
+        scene.add(sidep1);
+
+        const sidep2 = new THREE.Mesh( side_Geometry,side_Material);
+        sidep2.position.set(42.5,8,30.3);
+        sidep2.castShadow = true;
+        scene.add(sidep2);
+
+        const sidep3 = new THREE.Mesh( side_Geometry,side_Material);
+        sidep3.position.set(42.5,8,-30.3);
+        sidep3.castShadow = true;
+        scene.add(sidep3);
+
+        const roof_geometry = new THREE.ConeGeometry( 40, 20, 8 );
+        const roof_material = new THREE.MeshStandardMaterial( {color: 0x660000} );
+        const roof = new THREE.Mesh( roof_geometry, roof_material );
+        roof.position.set(60,25,0);
+        scene.add( roof );
+
+        const g_geometry = new THREE.TorusGeometry(35, 0.25, 6, 36);
+        const g_material = new THREE.MeshStandardMaterial({color: 0xFFFFFF});
+        const gard1 = new THREE.Mesh(g_geometry, g_material);
+        gard1.position.set(60,3,0);
+        scene.add( gard1 );
+
+        const gard2 = new THREE.Mesh(g_geometry, g_material);
+        gard2.position.set(60,5,0);
+        scene.add( gard2 );
+
+
+        //コップ
+        var c_Geometry = new THREE.CylinderGeometry( 3, 2, 3, 32 );
+        var c_Material1 = new THREE.MeshStandardMaterial({color:0xFF8C00});
+        var cup1 = new THREE.Mesh(c_Geometry, c_Material1);
+        cup1.position.set(0,0,-10); 
+
+        var c_Material2 = new THREE.MeshStandardMaterial({color:0xFF6347});
+        var cup2 = new THREE.Mesh(c_Geometry, c_Material2);
+        cup2.position.set(-10,0,0); 
+        
+        var c_Material3 = new THREE.MeshStandardMaterial({color:0x00FF7F});
+        var cup3 = new THREE.Mesh(c_Geometry, c_Material3);
+        cup3.position.set(10,0,0); 
+
+        var c_Material4 = new THREE.MeshStandardMaterial({color:0x6495ED});
+        var cup4 = new THREE.Mesh(c_Geometry, c_Material4);
+        cup4.position.set(0,0,10); 
+
+        var cup5 = new THREE.Mesh(c_Geometry, c_Material1);
+        cup5.position.set(0,0,-10); 
+
+        var cup6 = new THREE.Mesh(c_Geometry, c_Material2);
+        cup6.position.set(-10,0,0); 
+
+        var cup7 = new THREE.Mesh(c_Geometry, c_Material3);
+        cup7.position.set(10,0,0); 
+
+        var cup8 = new THREE.Mesh(c_Geometry, c_Material4);
+        cup8.position.set(0,0,10); 
+
+        var cup9 = new THREE.Mesh(c_Geometry, c_Material1);
+        cup9.position.set(0,0,-10); 
+
+        var cup10 = new THREE.Mesh(c_Geometry, c_Material2);
+        cup10.position.set(-10,0,0); 
+
+        var cup11 = new THREE.Mesh(c_Geometry, c_Material3);
+        cup11.position.set(10,0,0); 
+
+        var cup12 = new THREE.Mesh(c_Geometry, c_Material4);
+        cup12.position.set(0,0,10);
+
+
+        //持ち手
+        const h_geometry = new THREE.TorusGeometry(1.2, 0.2, 8, 100);
+        const h_material1 = new THREE.MeshStandardMaterial({color: 0xFF8C00});
+        const hand1 = new THREE.Mesh(h_geometry, h_material1);
+        hand1.position.set(0,0,-12.5);
+
+        const h_material2 = new THREE.MeshStandardMaterial({color: 0xFF6347});
+        const hand2 = new THREE.Mesh(h_geometry, h_material2);
+        hand2.position.set(-12.5,0,0);
+
+        const h_material3 = new THREE.MeshStandardMaterial({color:0x00FF7F});
+        const hand3 = new THREE.Mesh(h_geometry, h_material3);
+        hand3.position.set(12.5,0,0);
+
+        const h_material4 = new THREE.MeshStandardMaterial({color:0x6495ED});
+        const hand4 = new THREE.Mesh(h_geometry, h_material4);
+        hand4.position.set(0,0,12.5);
+
+        const hand5 = new THREE.Mesh(h_geometry, h_material1);
+        hand5.position.set(0,0,-12.5);
+
+        const hand6 = new THREE.Mesh(h_geometry, h_material2);
+        hand6.position.set(-12.5,0,0);
+
+        const hand7 = new THREE.Mesh(h_geometry, h_material3);
+        hand7.position.set(12.5,0,0);
+
+        const hand8 = new THREE.Mesh(h_geometry, h_material4);
+        hand8.position.set(0,0,12.5);
+
+        const hand9 = new THREE.Mesh(h_geometry, h_material1);
+        hand9.position.set(0,0,-12.5);
+
+        const hand10 = new THREE.Mesh(h_geometry, h_material2);
+        hand10.position.set(-12.5,0,0);
+
+        const hand11 = new THREE.Mesh(h_geometry, h_material3);
+        hand11.position.set(12.5,0,0);
+
+        const hand12 = new THREE.Mesh(h_geometry, h_material4);
+        hand12.position.set(0,0,12.5);
+
+        //皿
+        var d_Geometry = new THREE.CylinderGeometry( 4, 1, 0.5, 64 );
+        var d_Material = new THREE.MeshStandardMaterial({color:0xFFFFFF});
+        var dish1 = new THREE.Mesh(d_Geometry, d_Material);
+        dish1.position.set(0,-1.5,-10); 
+
+        var dish2 = new THREE.Mesh(d_Geometry, d_Material);
+        dish2.position.set(-10,-1.5,); 
+
+        var dish3 = new THREE.Mesh(d_Geometry, d_Material);
+        dish3.position.set(10,-1.5,0); 
+
+        var dish4 = new THREE.Mesh(d_Geometry, d_Material);
+        dish4.position.set(0,-1.5,10); 
+
+        var dish5 = new THREE.Mesh(d_Geometry, d_Material);
+        dish5.position.set(0,-1.5,-10); 
+
+        var dish6 = new THREE.Mesh(d_Geometry, d_Material);
+        dish6.position.set(-10,-1.5,); 
+
+        var dish7 = new THREE.Mesh(d_Geometry, d_Material);
+        dish7.position.set(10,-1.5,0); 
+
+        var dish8 = new THREE.Mesh(d_Geometry, d_Material);
+        dish8.position.set(0,-1.5,10); 
+
+        var dish9 = new THREE.Mesh(d_Geometry, d_Material);
+        dish9.position.set(0,-1.5,-10); 
+
+        var dish10 = new THREE.Mesh(d_Geometry, d_Material);
+        dish10.position.set(-10,-1.5,); 
+
+        var dish11 = new THREE.Mesh(d_Geometry, d_Material);
+        dish11.position.set(10,-1.5,0); 
+
+        var dish12 = new THREE.Mesh(d_Geometry, d_Material);
+        dish12.position.set(0,-1.5,10); 
+
+        let bgTexture = new THREE.TextureLoader().load("sky.jpg");
+        scene.background = bgTexture;
+
+        /*球
+        var geometry_r = new THREE.SphereGeometry( 0.25, 32, 32 );
+        var material_r = new THREE.MeshPhongMaterial({ color: 0xB22222 });
+        var room1 = new THREE.Mesh(geometry_r, material_r);
+        room1.castShadow = true; 
+        room1.position.set(0,-1.3,0);
+        scene.add(room1)
+
+        var room2 = new THREE.Mesh(geometry_r, material_r);
+        room2.castShadow = true; 
+        room2.position.set(0,-0.5,1);
+        //scene.add(room2)
+
+        var room3 = new THREE.Mesh(geometry_r, material_r);
+        room3.castShadow = true; 
+        room3.position.set(0,0.6,1);
+        //scene.add(room3)
+
+        var room4 = new THREE.Mesh(geometry_r, material_r);
+        room4.castShadow = true; 
+        room4.position.set(0,1.3,0);
+        //scene.add(room4)
+
+        var room5 = new THREE.Mesh(geometry_r, material_r);
+        room5.castShadow = true; 
+        room5.position.set(0,0.5,-1.1);
+        //scene.add(room5)
+
+        var room6 = new THREE.Mesh(geometry_r, material_r);
+        room6.castShadow = true; 
+        room6.position.set(0,-0.6,-1.0);
+        //scene.add(room6)
+
+
+        /*グループ作成
+        const Ferris = new THREE.Group();
+        Ferris.add(room1);
+        Ferris.add(room2);
+        Ferris.add(room3);
+        Ferris.add(room4);
+        Ferris.add(room5);
+        Ferris.add(room6);
+
+        Ferris.position.set(0.9,2,0);
+        scene.add(Ferris);*/
+
+        const room = new THREE.Group();
+            room.add(room1);
+            room.add(room2);
+            room.add(room3);
+            room.add(room4);
+            room.add(room5);
+            room.add(room6);
+            room.add(room7);
+            room.add(room8);
+            room.add(room9);
+            room.add(room10);
+            room.add(room11);
+            room.add(room12);
+
+            room.add(pole1);
+            room.add(pole2);
+            room.add(pole3);
+            room.add(pole4);
+            room.add(pole5);
+            room.add(pole6);
+            room.add(pole7);
+            room.add(pole8);
+            room.add(pole9);
+            room.add(pole10);
+            room.add(pole11);
+            room.add(pole12);
+
+            room.add(s_pole1);
+            room.add(s_pole2);
+            room.add(s_pole3);
+            room.add(s_pole4);
+            room.add(s_pole5);
+            room.add(s_pole6);
+
+
+            room.add(center1);
+            room.position.set(0,30,0);
+            scene.add(room);
+
+
+        const g_cup1 = new THREE.Group();
+            g_cup1.add(cup1);
+            g_cup1.add(cup2);
+            g_cup1.add(cup3);
+            g_cup1.add(cup4);
+            g_cup1.add(hand1);
+            g_cup1.add(hand2);
+            g_cup1.add(hand3);
+            g_cup1.add(hand4);
+            g_cup1.add(dish1);
+            g_cup1.add(dish2);
+            g_cup1.add(dish3);
+            g_cup1.add(dish4);
+            g_cup1.position.set(-20,2,0);
+        
+        const g_cup2 = new THREE.Group();
+            g_cup2.add(cup5);
+            g_cup2.add(cup6);
+            g_cup2.add(cup7);
+            g_cup2.add(cup8);
+            g_cup2.add(hand5);
+            g_cup2.add(hand6);
+            g_cup2.add(hand7);
+            g_cup2.add(hand8);
+            g_cup2.add(dish5);
+            g_cup2.add(dish6);
+            g_cup2.add(dish7);
+            g_cup2.add(dish8);
+            g_cup2.position.set(10,2,17);
+
+        const g_cup3 = new THREE.Group();
+            g_cup3.add(cup9);
+            g_cup3.add(cup10);
+            g_cup3.add(cup11);
+            g_cup3.add(cup12);
+            g_cup3.add(hand9);
+            g_cup3.add(hand10);
+            g_cup3.add(hand11);
+            g_cup3.add(hand12);
+            g_cup3.add(dish9);
+            g_cup3.add(dish10);
+            g_cup3.add(dish11);
+            g_cup3.add(dish12);
+            g_cup3.position.set(10,2,-17);
+
+        const coffee = new THREE.Group();
+            coffee.add(g_cup1);
+            coffee.add(g_cup2);
+            coffee.add(g_cup3);
+            coffee.position.set(60,1,0);
+        scene.add(coffee);
+
+        update();
+
+        /*box3.rotation.x = 1.57;
+        pole2.rotation.x = 1.0;
+        pole3.rotation.x = 2.0;*/
+
+        // 毎フレーム時に実行されるループイベントです
+        function update() {
+            // レンダリング
+            renderer.render(scene, camera)
+            requestAnimationFrame(update);
+            
+            /*土台
+            box.rotation.x = 0.3;
+            box.rotation.y += 0.00;
+
+            box2.rotation.x = -0.3;
+
+            box3.rotation.x += 0.01;
+            box3.rotation.z = 1.57;
+
+            box4.rotation.x = 0.3;
+            box5.rotation.x = -0.3;*/
+            
+            //土台　
+            ground1.rotation.x=0.3;
+            ground2.rotation.x=-0.3;
+            ground3.rotation.x=-0.3;
+            ground4.rotation.x=0.3;
+            center.rotation.z=1.57;
+
+            /*柱
+            pole1.rotation.x += 0.01;
+            pole2.rotation.x += 0.01;
+            pole3.rotation.x += 0.01;*/
+
+            //柱
+            pole3.rotation.x = 1.57;
+            pole4.rotation.x = 1.57;
+
+            pole5.rotation.x = 0.523;
+            pole6.rotation.x = 0.523;
+
+            pole7.rotation.x = 1.046;
+            pole8.rotation.x = 1.046;
+
+            pole9.rotation.x = 2.09;
+            pole10.rotation.x = 2.09;
+
+            pole11.rotation.x = 2.61;
+            pole12.rotation.x = 2.61;
+
+            //柱横
+            s_pole1.rotation.y = 1.57;
+            s_pole2.rotation.y = 1.57;
+            s_pole3.rotation.y = 1.57;
+            s_pole4.rotation.y = 1.57;
+            s_pole5.rotation.y = 1.57;
+            s_pole6.rotation.y = 1.57;
+
+            room.rotation.x +=0.01;
+
+            room1.rotation.z = 1.57;
+            room2.rotation.z = 1.57;
+            room3.rotation.z = 1.57;
+            room4.rotation.z = 1.57;
+            room5.rotation.z = 1.57;
+            room6.rotation.z = 1.57;
+            room7.rotation.z = 1.57;
+            room8.rotation.z = 1.57;
+            room9.rotation.z = 1.57;
+            room10.rotation.z = 1.57;
+            room11.rotation.z = 1.57;
+            room12.rotation.z = 1.57;
+            
+            clock2.rotation.y = 3.14;
+            //コーヒーカップ
+            centerp.rotation.y = 1.57;
+            gard1.rotation.x = 1.57;
+            gard2.rotation.x = 1.57;
+
+            hand1.rotation.y = 1.57;
+            hand2.rotation.y = 0.3925;
+            hand3.rotation.y = 0.3925;
+            hand4.rotation.y = 1.57;
+
+            hand5.rotation.y = 1.57;
+            hand6.rotation.y = 0.3925;
+            hand7.rotation.y = 0.3925;
+            hand8.rotation.y = 1.57;
+
+            hand9.rotation.y = 1.57;
+            hand10.rotation.y = 0.3925;
+            hand11.rotation.y = 0.3925;
+            hand12.rotation.y = 1.57;
+
+            g_cup1.rotation.y += 0.035;
+            g_cup2.rotation.y -= 0.07;
+            g_cup3.rotation.y += 0.035;
+
+            coffee.rotation.y += 0.025;
+            center1.rotation.z = 1.57;
+            }
+        }
+    </script>
+</body>
